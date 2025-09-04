@@ -42,69 +42,82 @@ export const authOptions: AuthOptions = {
     error: "/auth/error",
   },
 
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        // Save MongoDB _id as string in token
-        token.id = (user as any).id?.toString() || (user as any)._id?.toString();
-        token.onboarded = (user as any).onboarded ?? false;
+callbacks: {
+  async jwt({ token, user, account }) {
+    if (user) {
+      token.id = (user as any)._id?.toString() || token.id;
+      token.onboarded = (user as any).onboarded ?? false;
+
+      // If first sign-in via GitHub, store GitHub username in DB
+      if (account?.provider === "github" && user?.email) {
+        try {
+          const client = await clientPromise;
+          const db = client.db();
+          const usersCollection = db.collection<User>("users");
+
+          // Update github field if not already set
+          await usersCollection.updateOne(
+            { email: user.email },
+            { $set: { github: (user as any).name || (user as any).login } }, // map name/login to github
+            { upsert: true }
+          );
+        } catch (err) {
+          console.error("Error updating GitHub username:", err);
+        }
       }
-      return token;
-    },
-    async session({ session, token }) {
-      const client = await clientPromise;
-      const db = client.db();
-      const usersCollection = db.collection<User>("users");
-
-      let dbUser = null;
-      if (token.id) {
-        dbUser = await usersCollection.findOne(
-          { _id: new ObjectId(token.id as string) },
-          {
-            projection: {
-              _id: 1,
-              username: 1,
-              email: 1,
-              bio: 1,
-              gender: 1,
-              year: 1,
-              institutionName: 1,
-              institutionAddress: 1,
-              github: 1,
-              linkedin: 1,
-              instagram: 1,
-              skills: 1,
-              projects: 1,
-              projecttitle: 1,
-              pasthackathondesc: 1,
-              pasthackathontitle: 1,
-              whatsapp: 1,
-              image: 1,
-              gigs: 1,
-              messages: 1,
-              onboarded: 1,
-            },
-          }
-        );
-      }
-
-      if (!dbUser) {
-        // fallback, shouldn't normally happen
-        session.user.id = token.id as string;
-        session.user.isNewUser = true;
-        return session;
-      }
-
-      session.user = {
-        ...session.user,
-        ...dbUser,
-        id: dbUser._id.toString(), // ✅ always string
-        isNewUser: !dbUser.onboarded,
-      } as any;
-
-      return session;
-    },
+    }
+    return token;
   },
+
+  async session({ session, token }) {
+    if (!token.id) return session;
+
+    const client = await clientPromise;
+    const db = client.db();
+    const usersCollection = db.collection<User>("users");
+
+    const dbUser = await usersCollection.findOne(
+      { _id: new ObjectId(token.id as string) },
+      {
+        projection: {
+          _id: 1,
+          email: 1,
+          username: 1,
+          bio: 1,
+          gender: 1,
+          year: 1,
+          college: 1,
+          linkedin: 1,
+          github: 1,
+          profilePhoto: 1,
+          skills: 1,
+          projects: 1,
+          preferredRoles: 1,
+          interests: 1,
+          location: 1,
+          availability: 1,
+          onboarded: 1,
+        },
+      }
+    );
+
+    if (!dbUser) {
+      session.user.id = token.id as string;
+      session.user.isNewUser = true;
+      return session;
+    }
+
+    session.user = {
+      ...session.user,
+      ...dbUser,
+      id: dbUser._id.toString(),
+      isNewUser: !dbUser.onboarded,
+    } as any;
+
+    return session;
+  },
+},
+
 };
 
 const handler = NextAuth(authOptions);

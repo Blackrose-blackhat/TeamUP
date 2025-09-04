@@ -49,61 +49,13 @@ const step3Schema = z.object({
   projects: z.string().optional(),
 });
 
-export default function DashboardPage() {
-  const { data: session, status } = useSession();
-const [open, setOpen] = useState(true)
-
-
-
-  // 🔹 Pre-fill with session.user data when loaded
-
-  if (status === "loading") {
-    return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  // Validate current step before proceeding
-
-
-// async function onSubmit(values: any) {
-//   try {
-//     const res = await fetch("/api/user/update", {
-//       method: "POST",
-//       headers: { "Content-Type": "application/json" },
-//       body: JSON.stringify(values),
-//     });
-
-//     const data = await res.json();
-//     if (data.success) {
-//       console.log("✅ Profile updated:", data);
-//     } else {
-//       console.error("❌ Update failed:", data.error);
-//     }
-//   } catch (error) {
-//     console.error("❌ Error:", error);
-//   }
-// }
-
-
-
+// app/dashboard/page.tsx
+// app/dashboard/page.tsx
+export default function DashboardHome() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-      <p>Welcome back, {session?.user?.name}</p>
-      <button
-        onClick={() => signOut({ callbackUrl: "/" })}
-        className="mt-4 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
-      >
-        Logout
-      </button>
-
-      {/* Show Dialog only for new users */}
-      {session?.user?.isNewUser && (
-       <OnboardingDialog open={open} onClose={() => {}} />
-      )}
+    <div>
+      <h1 className="text-2xl font-bold mb-4">Dashboard Home</h1>
+      <p>Welcome! Select a section from the sidebar.</p>
     </div>
   );
 }

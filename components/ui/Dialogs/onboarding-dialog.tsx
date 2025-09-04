@@ -41,11 +41,11 @@ const step2Schema = z.object({
     institutionName: z.string().min(1, "Institution name is required"),
     institutionAddress: z.string().min(1, "Institution address is required"),
     addressCoords: z
-    .object({
-      lat: z.number(),
-      lon: z.number(),
-    })
-    .optional(),
+        .object({
+            lat: z.number(),
+            lon: z.number(),
+        })
+        .optional(),
     year: z.string().min(1, "Year is required"),
 })
 const step3Schema = z.object({
@@ -147,33 +147,33 @@ export function OnboardingDialog({ open = true, onClose, defaultValues }: Onboar
         setSkills(skills.filter((s) => s !== skill))
     }
 
-async function onSubmit(values: FormValues) {
-    setIsSubmitting(true)
-    values.skills = skills.join(", ")
-    try {
-        const res = await fetch("/api/user/update", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(values),
-        })
-        const data = await res.json()
+    async function onSubmit(values: FormValues) {
+        setIsSubmitting(true)
+        values.skills = skills.join(", ")
+        try {
+            const res = await fetch("/api/user/update", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(values),
+            })
+            const data = await res.json()
 
-        // Check both success flags
-        if (data.success && data.updated) {
-            // brief delay for nicer UX
-            setTimeout(() => {
+            // Check both success flags
+            if (data.success) {
+                // brief delay for nicer UX
+                setTimeout(() => {
+                    setIsSubmitting(false)
+                    onClose?.()
+                }, 600)
+            } else {
+                console.error("❌ Update failed:", data.error)
                 setIsSubmitting(false)
-                onClose?.()
-            }, 600)
-        } else {
-            console.error("❌ Update failed:", data.error)
+            }
+        } catch (err) {
+            console.error("❌ Error:", err)
             setIsSubmitting(false)
         }
-    } catch (err) {
-        console.error("❌ Error:", err)
-        setIsSubmitting(false)
     }
-}
 
 
     const steps = [
