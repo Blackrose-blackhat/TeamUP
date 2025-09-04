@@ -1,6 +1,6 @@
 export interface User {
   _id: string; // ObjectId string
-  email: string , ;
+  email: string , 
   username?: string;
   profilePhoto?: string;
   skills?: string[];
