@@ -2,18 +2,24 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { RotateCcw } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface OptionsData {
-  skills: string[];
-  years: string[];
-  institutions: string[];
-  genders: string[];
+  skillsRequired: string[];
+  rolesRequired: string[];
+  tags: string[];
+  projectTypes: string[];
+  statuses: string[];
 }
 
 export function GigFiltersSidebar({ className }: { className?: string }) {
@@ -22,66 +28,85 @@ export function GigFiltersSidebar({ className }: { className?: string }) {
 
   // Selected filter state
   const [selectedSkills, setSelectedSkills] = useState<string[]>(
-    (searchParams.get("skills")?.split(",") as string[]) || []
+    searchParams.get("skillsRequired")?.split(",") || []
   );
-  const [selectedYears, setSelectedYears] = useState<string[]>(
-    (searchParams.get("years")?.split(",") as string[]) || []
+  const [selectedRoles, setSelectedRoles] = useState<string[]>(
+    searchParams.get("rolesRequired")?.split(",") || []
   );
-  const [selectedInstitutions, setSelectedInstitutions] = useState<string[]>(
-    (searchParams.get("institutions")?.split(",") as string[]) || []
+  const [selectedTags, setSelectedTags] = useState<string[]>(
+    searchParams.get("tags")?.split(",") || []
   );
-  const [selectedGenders, setSelectedGenders] = useState<string[]>(
-    (searchParams.get("genders")?.split(",") as string[]) || []
+  const [selectedProjectTypes, setSelectedProjectTypes] = useState<string[]>(
+    searchParams.get("projectTypes")?.split(",") || []
+  );
+  const [selectedStatuses, setSelectedStatuses] = useState<string[]>(
+    searchParams.get("status")?.split(",") || []
   );
 
-  // Options fetched from API
+  // Dropdown states
+  const [skillsOpen, setSkillsOpen] = useState(false);
+  const [rolesOpen, setRolesOpen] = useState(false);
+  const [tagsOpen, setTagsOpen] = useState(false);
+  const [projectTypesOpen, setProjectTypesOpen] = useState(false);
+  const [statusesOpen, setStatusesOpen] = useState(false);
+
+  // Options (skills from API, rest static)
   const [options, setOptions] = useState<OptionsData>({
-    skills: [],
-    years: [],
-    institutions: [],
-    genders: [],
+    skillsRequired: [],
+    rolesRequired: ["Frontend", "Backend", "Designer", "Researcher"],
+    tags: ["AI", "Blockchain", "Web", "Mobile", "Data Science"],
+    projectTypes: ["Hackathon", "Side Project", "Research"],
+    statuses: ["Open", "In Progress", "Completed", "Archived"],
   });
 
-  useEffect(() => {
-    async function fetchOptions() {
-      try {
-        const res = await fetch("/api/data");
-        const data: OptionsData = await res.json();
-        setOptions(data);
-      } catch (err) {
-        console.error("Error fetching filter options:", err);
-      }
+  // Fetch skills from API
+useEffect(() => {
+  async function fetchSkills() {
+    try {
+      const res = await fetch("/api/data"); // ✅ correct endpoint
+      const data: string[] = await res.json();
+      setOptions((prev) => ({ ...prev, skillsRequired: data }));
+    } catch (err) {
+      console.error("Error fetching skills:", err);
     }
-    fetchOptions();
-  }, []);
+  }
+  fetchSkills();
+}, []);
 
-  // Generic toggle function
-  const toggleItem = (arr: string[], setArr: (val: string[]) => void, item: string) => {
-    setArr(arr.includes(item) ? arr.filter((i) => i !== item) : [...arr, item]);
-  };
 
+  // Apply filters
   const applyFilters = () => {
     const params = new URLSearchParams();
-    if (selectedSkills.length) params.set("skills", selectedSkills.join(","));
-    if (selectedYears.length) params.set("years", selectedYears.join(","));
-    if (selectedInstitutions.length) params.set("institutions", selectedInstitutions.join(","));
-    if (selectedGenders.length) params.set("genders", selectedGenders.join(","));
+    if (selectedSkills.length) params.set("skillsRequired", selectedSkills.join(","));
+    if (selectedRoles.length) params.set("rolesRequired", selectedRoles.join(","));
+    if (selectedTags.length) params.set("tags", selectedTags.join(","));
+    if (selectedProjectTypes.length) params.set("projectTypes", selectedProjectTypes.join(","));
+    if (selectedStatuses.length) params.set("status", selectedStatuses.join(","));
     router.push(`/dashboard/gigs?${params.toString()}`);
   };
 
+  // Clear filters
   const clearFilters = () => {
     setSelectedSkills([]);
-    setSelectedYears([]);
-    setSelectedInstitutions([]);
-    setSelectedGenders([]);
+    setSelectedRoles([]);
+    setSelectedTags([]);
+    setSelectedProjectTypes([]);
+    setSelectedStatuses([]);
     router.push(`/dashboard/gigs`);
   };
+
+  const hasActiveFilters =
+    selectedSkills.length > 0 ||
+    selectedRoles.length > 0 ||
+    selectedTags.length > 0 ||
+    selectedProjectTypes.length > 0 ||
+    selectedStatuses.length > 0;
 
   return (
     <div className={`rounded-xl border border-gray-200 shadow-sm ${className}`}>
       <div className="p-6 pb-4 flex items-center justify-between">
-        <h4 className="text-lg font-semibold ">Filters</h4>
-        {(selectedSkills.length || selectedYears.length || selectedInstitutions.length || selectedGenders.length) > 0 && (
+        <h4 className="text-lg font-semibold">Filters</h4>
+        {hasActiveFilters && (
           <Button
             variant="ghost"
             size="sm"
@@ -97,73 +122,55 @@ export function GigFiltersSidebar({ className }: { className?: string }) {
       <Separator />
 
       <div className="p-6 space-y-6">
-        {/* Skills */}
-        <div>
-          <Label className="text-sm font-medium  mb-3 block">Skills</Label>
-          <div className="flex flex-wrap gap-2">
-            {options.skills.map((skill) => (
-              <Badge
-                key={skill}
-                variant={selectedSkills.includes(skill) ? "secondary" : "outline"}
-                className="cursor-pointer"
-                onClick={() => toggleItem(selectedSkills, setSelectedSkills, skill)}
-              >
-                {skill}
-              </Badge>
-            ))}
-          </div>
-        </div>
+        {/* Skills Filter */}
+        <FilterSelect
+          label="Skills"
+          items={options.skillsRequired}
+          selected={selectedSkills}
+          setSelected={setSelectedSkills}
+          open={skillsOpen}
+          setOpen={setSkillsOpen}
+        />
 
-        {/* Years */}
-        <div>
-          <Label className="text-sm font-medium  mb-3 block">Year</Label>
-          <div className="flex flex-wrap gap-2">
-            {options.years.map((year) => (
-              <Badge
-                key={year}
-                variant={selectedYears.includes(year) ? "secondary" : "outline"}
-                className="cursor-pointer"
-                onClick={() => toggleItem(selectedYears, setSelectedYears, year)}
-              >
-                {year}
-              </Badge>
-            ))}
-          </div>
-        </div>
+        {/* Roles Filter */}
+        <FilterSelect
+          label="Roles"
+          items={options.rolesRequired}
+          selected={selectedRoles}
+          setSelected={setSelectedRoles}
+          open={rolesOpen}
+          setOpen={setRolesOpen}
+        />
 
-        {/* Institutions */}
-        <div>
-          <Label className="text-sm font-medium  mb-3 block">Institutions</Label>
-          <div className="flex flex-wrap gap-2">
-            {options.institutions.map((inst) => (
-              <Badge
-                key={inst}
-                variant={selectedInstitutions.includes(inst) ? "secondary" : "outline"}
-                className="cursor-pointer"
-                onClick={() => toggleItem(selectedInstitutions, setSelectedInstitutions, inst)}
-              >
-                {inst}
-              </Badge>
-            ))}
-          </div>
-        </div>
+        {/* Tags Filter */}
+        <FilterSelect
+          label="Tags"
+          items={options.tags}
+          selected={selectedTags}
+          setSelected={setSelectedTags}
+          open={tagsOpen}
+          setOpen={setTagsOpen}
+        />
 
-        {/* Genders */}
-        <div>
-          <Label className="text-sm font-medium  mb-3 block">Gender</Label>
-          <div className="flex flex-wrap gap-2">
-            {options.genders.map((gender) => (
-              <Badge
-                key={gender}
-                variant={selectedGenders.includes(gender) ? "secondary" : "outline"}
-                className="cursor-pointer"
-                onClick={() => toggleItem(selectedGenders, setSelectedGenders, gender)}
-              >
-                {gender}
-              </Badge>
-            ))}
-          </div>
-        </div>
+        {/* Project Types Filter */}
+        <FilterSelect
+          label="Project Types"
+          items={options.projectTypes}
+          selected={selectedProjectTypes}
+          setSelected={setSelectedProjectTypes}
+          open={projectTypesOpen}
+          setOpen={setProjectTypesOpen}
+        />
+
+        {/* Status Filter */}
+        <FilterSelect
+          label="Status"
+          items={options.statuses}
+          selected={selectedStatuses}
+          setSelected={setSelectedStatuses}
+          open={statusesOpen}
+          setOpen={setStatusesOpen}
+        />
 
         <Button
           onClick={applyFilters}
@@ -172,6 +179,69 @@ export function GigFiltersSidebar({ className }: { className?: string }) {
           Apply Filters
         </Button>
       </div>
+    </div>
+  );
+}
+
+/* 🔹 Reusable filter component */
+function FilterSelect({
+  label,
+  items,
+  selected,
+  setSelected,
+  open,
+  setOpen,
+}: {
+  label: string;
+  items: string[];
+  selected: string[];
+  setSelected: (val: string[]) => void;
+  open: boolean;
+  setOpen: (val: boolean) => void;
+}) {
+  const toggleItem = (item: string) => {
+    setSelected(
+      selected.includes(item)
+        ? selected.filter((i) => i !== item)
+        : [...selected, item]
+    );
+  };
+
+  return (
+    <div>
+      <Label className="text-sm font-medium mb-3 block">
+        {label} {selected.length > 0 && `(${selected.length})`}
+      </Label>
+      <Select open={open} onOpenChange={setOpen}>
+        <SelectTrigger className="w-full">
+          <SelectValue
+            placeholder={
+              selected.length > 0
+                ? `${selected.length} selected`
+                : `Select ${label.toLowerCase()}...`
+            }
+          />
+        </SelectTrigger>
+        <SelectContent>
+          <div className="p-2 space-y-2 max-h-60 overflow-y-auto">
+            {items.map((item) => (
+              <div key={item} className="flex items-center space-x-2">
+                <Checkbox
+                  id={`${label}-${item}`}
+                  checked={selected.includes(item)}
+                  onCheckedChange={() => toggleItem(item)}
+                />
+                <Label
+                  htmlFor={`${label}-${item}`}
+                  className="text-sm cursor-pointer flex-1"
+                >
+                  {item}
+                </Label>
+              </div>
+            ))}
+          </div>
+        </SelectContent>
+      </Select>
     </div>
   );
 }

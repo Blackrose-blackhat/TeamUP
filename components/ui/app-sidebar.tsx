@@ -2,7 +2,17 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { User, Settings, Briefcase, LogOut, Zap } from "lucide-react";
+import { 
+  User, 
+  Settings, 
+  Briefcase, 
+  LogOut, 
+  Zap, 
+  Plus,
+  List,
+  Eye,
+  FileStack
+} from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -14,19 +24,23 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronRight } from "lucide-react";
 
-// Menu items
-const items = [
+// Main navigation items
+const mainItems = [
   {
     title: "Profile",
     url: "/dashboard/profile",
     icon: User,
-  },
-  {
-    title: "Gigs",
-    url: "/dashboard/gigs", 
-    icon: Briefcase,
   },
   {
     title: "Settings",
@@ -35,11 +49,33 @@ const items = [
   },
 ];
 
+// Gig-related items with sub-navigation
+const gigItems = [
+  {
+    title: "Browse Gigs",
+    url: "/dashboard/gigs",
+    icon: List,
+    description: "View all available gigs"
+  },
+  {
+    title: "Create Gig",
+    url: "/dashboard/gigs/create",
+    icon: Plus,
+    description: "Post a new gig"
+  },
+  {
+    title: "Your Gigs",
+    url: "/dashboard/gigs/mine",
+    icon: FileStack,
+    description: "View your posted Gigs"
+  },
+];
+
 export function AppSidebar() {
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
-        <div className=" py-2 flex items-center">
+        <div className="py-2 flex items-center">
           {/* Logo - always visible */}
           <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg mr-3 group-data-[collapsible=icon]:mr-0">
             <Zap className="w-5 h-5 text-white" />
@@ -52,11 +88,12 @@ export function AppSidebar() {
       </SidebarHeader>
       
       <SidebarContent>
+        {/* Main Navigation */}
         <SidebarGroup>
           <SidebarGroupLabel>Navigation</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {items.map((item) => (
+              {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
@@ -66,6 +103,40 @@ export function AppSidebar() {
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        {/* Gigs Section */}
+        <SidebarGroup>
+          <SidebarGroupLabel>Gigs</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <Collapsible asChild defaultOpen>
+                <SidebarMenuItem>
+                  <CollapsibleTrigger asChild>
+                    <SidebarMenuButton>
+                      <Briefcase />
+                      <span>Gig Management</span>
+                      <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                    </SidebarMenuButton>
+                  </CollapsibleTrigger>
+                  <CollapsibleContent>
+                    <SidebarMenuSub>
+                      {gigItems.map((item) => (
+                        <SidebarMenuSubItem key={item.title}>
+                          <SidebarMenuSubButton asChild>
+                            <a href={item.url}>
+                              <item.icon />
+                              <span>{item.title}</span>
+                            </a>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      ))}
+                    </SidebarMenuSub>
+                  </CollapsibleContent>
+                </SidebarMenuItem>
+              </Collapsible>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

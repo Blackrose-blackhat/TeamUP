@@ -43,51 +43,86 @@ export const authOptions: AuthOptions = {
   },
 
   callbacks: {
-    async signIn({ user, account, profile }) {
-      // This runs every time user signs in
-      if (user?.email) {
-        try {
-          const client = await clientPromise;
-          const db = client.db();
-          const usersCollection = db.collection<User>("users");
+async signIn({ user, account, profile }) {
+  if (!user?.email) return false;
 
-          // Check if user exists
-          const existingUser = await usersCollection.findOne({ email: user.email });
-          
-          if (!existingUser) {
-            // Create new user record
-            const newUser = {
-              email: user.email,
-              name: user.name,
-              image: user.image,
-              onboarded: false, // ✅ Explicitly set to false for new users
-              createdAt: new Date(),
-              // Set GitHub username if signing in via GitHub
-              ...(account?.provider === "github" && {
-                github: (profile as any)?.login || user.name
-              })
-            };
+  try {
+    const client = await clientPromise;
+    const db = client.db();
+    const usersCollection = db.collection("users");
+    const accountsCollection = db.collection("accounts");
 
-            const result = await usersCollection.insertOne(newUser);
-            console.log("✅ New user created:", result.insertedId);
-          } else if (account?.provider === "github" && !existingUser.github) {
-            // Update GitHub username for existing users
-            await usersCollection.updateOne(
-              { email: user.email },
-              { 
-                $set: { 
-                  github: (profile as any)?.login || user.name 
-                } 
-              }
-            );
-          }
-        } catch (err) {
-          console.error("Error in signIn callback:", err);
-          // Don't block sign in if database operation fails
-        }
+    const existingUser = await usersCollection.findOne({ email: user.email });
+
+    if (existingUser) {
+      // ✅ Check if account for this provider already exists
+      const existingAccount = await accountsCollection.findOne({
+        userId: existingUser._id,
+        provider: account?.provider,
+      });
+
+      if (!existingAccount && account) {
+        // ✅ Link new provider to same user
+        await accountsCollection.insertOne({
+          userId: existingUser._id,
+          type: account.type,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+          access_token: account.access_token,
+          token_type: account.token_type,
+          scope: account.scope,
+          id_token: account.id_token,
+          refresh_token: account.refresh_token,
+          expires_at: account.expires_at,
+        });
+        console.log(`🔗 Linked ${account.provider} to user ${existingUser._id}`);
       }
-      return true;
-    },
+
+      // Optional: update GitHub username if missing
+      if (account?.provider === "github" && !existingUser.github) {
+        await usersCollection.updateOne(
+          { _id: existingUser._id },
+          { $set: { github: (profile as any)?.login || user.name } }
+        );
+      }
+    } else {
+      // New user flow
+      const newUser = {
+        email: user.email,
+        name: user.name,
+        image: user.image,
+        onboarded: false,
+        createdAt: new Date(),
+        ...(account?.provider === "github" && {
+          github: (profile as any)?.login || user.name,
+        }),
+      };
+
+      const result = await usersCollection.insertOne(newUser);
+      console.log("✅ New user created:", result.insertedId);
+
+      if (account) {
+        await accountsCollection.insertOne({
+          userId: result.insertedId,
+          type: account.type,
+          provider: account.provider,
+          providerAccountId: account.providerAccountId,
+          access_token: account.access_token,
+          token_type: account.token_type,
+          scope: account.scope,
+          id_token: account.id_token,
+          refresh_token: account.refresh_token,
+          expires_at: account.expires_at,
+        });
+        console.log(`🔗 Linked ${account.provider} to new user ${result.insertedId}`);
+      }
+    }
+  } catch (err) {
+    console.error("Error in signIn callback:", err);
+  }
+
+  return true;
+},
 
     async jwt({ token, user, account }) {
       // This runs whenever JWT is accessed

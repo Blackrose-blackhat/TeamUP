@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AddressAutocomplete } from "../Input/address-autocomplete"
 
 const formSchema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters"), // ✅ new
     bio: z.string().min(10, "Bio must be at least 10 characters"),
     gender: z.string().min(1, "Gender is required"),
     institutionName: z.string().min(1, "Institution name is required"),
@@ -33,10 +34,13 @@ const formSchema = z.object({
     year: z.string().min(1, "Year is required"),
 })
 
+
 const step1Schema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
     bio: z.string().min(10, "Bio must be at least 10 characters"),
     gender: z.string().min(1, "Gender is required"),
 })
+
 const step2Schema = z.object({
     institutionName: z.string().min(1, "Institution name is required"),
     institutionAddress: z.string().min(1, "Institution address is required"),
@@ -209,8 +213,11 @@ export function OnboardingDialog({ open = true, onClose, defaultValues }: Onboar
     }, [addressQuery])
 
     return (
-        <Dialog open={open} onOpenChange={(o) => (!o ? onClose?.() : undefined)}>
+        <Dialog open={open}>
             <DialogContent
+                onInteractOutside={(e) => e.preventDefault()}
+                onEscapeKeyDown={(e) => e.preventDefault()}
+
                 className="sm:max-w-xl transition-opacity duration-300"
                 style={{ opacity: isSubmitting ? 0.5 : 1 }}
             >
@@ -226,6 +233,16 @@ export function OnboardingDialog({ open = true, onClose, defaultValues }: Onboar
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                         {step === 1 && (
                             <>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-medium">Username</label>
+                                    <Input
+                                        placeholder="Username"
+                                        {...form.register("username")}
+                                        className={cn(getError("username") && "border-destructive")}
+                                    />
+                                    {getError("username") && <p className="text-sm text-destructive">{getError("username")}</p>}
+                                </div>
+
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Bio</label>
                                     <Textarea
@@ -291,13 +308,24 @@ export function OnboardingDialog({ open = true, onClose, defaultValues }: Onboar
 
                                 <div className="space-y-2">
                                     <label className="text-sm font-medium">Year</label>
-                                    <Input
-                                        placeholder="Year"
-                                        {...form.register("year")}
-                                        className={cn(getError("year") && "border-destructive")}
-                                    />
+                                    <Select
+                                        onValueChange={(value) => form.setValue("year", value)}
+                                        defaultValue={form.getValues("year") || ""}
+                                    >
+                                        <SelectTrigger className={cn(getError("year") && "border-destructive w-full")}>
+                                            <SelectValue placeholder="Select year" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="1">1</SelectItem>
+                                            <SelectItem value="2">2</SelectItem>
+                                            <SelectItem value="3">3</SelectItem>
+                                            <SelectItem value="4">4</SelectItem>
+                                            <SelectItem value="passout">Pass Out</SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                     {getError("year") && <p className="text-sm text-destructive">{getError("year")}</p>}
                                 </div>
+
 
                                 <div className="flex items-center justify-between">
                                     <Button type="button" variant="outline" onClick={handleBack}>

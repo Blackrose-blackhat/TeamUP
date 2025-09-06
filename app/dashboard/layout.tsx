@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/ui/app-sidebar";
 import { OnboardingDialog } from "@/components/ui/Dialogs/onboarding-dialog";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const { data: session } = useSession();
@@ -19,6 +20,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
           <SidebarTrigger />
         </div>
         <div className="p-6">{children}</div>
+        <Toaster />
       </main>
 
       {/* Onboarding dialog for new users */}

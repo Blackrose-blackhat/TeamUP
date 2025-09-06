@@ -9,22 +9,24 @@ export async function middleware(req: NextRequest) {
   console.log("Middleware - token:", token);
   console.log("Middleware - pathname:", pathname);
 
-  // If no session → kick back to home
-  if (!token && pathname.startsWith("/")) {
-    console.log("No token, redirecting to home");
+  // If user is not authenticated and trying to access dashboard → redirect to home
+  if (!token && pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/", req.url));
+  }
+
+  // If user is authenticated and trying to access home → redirect to dashboard
+  if (token && pathname === "/") {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   // If user is authenticated but hasn't completed onboarding
-  if (token && token.onboarded !== true && !pathname.startsWith("/onboarding")) {
-    console.log("User not onboarded, redirecting to onboarding");
-    return NextResponse.redirect(new URL("/onboarding", req.url));
-  }
+  // if (token && token.onboarded !== true && !pathname.startsWith("/onboarding")) {
+  //   return NextResponse.redirect(new URL("/onboarding", req.url));
+  // }
 
-  // If user is onboarded but trying to access onboarding page, redirect to dashboard
+  // If user is onboarded but trying to access onboarding page → redirect to dashboard
   if (token && token.onboarded === true && pathname.startsWith("/onboarding")) {
-    console.log("User already onboarded, redirecting to dashboard");
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
@@ -32,7 +34,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/onbaording",
-    "/onboarding/:path*"
+    "/onboarding/:path*",
+    "/dashboard/:path*",
+    "/" // optional, if you want to include root
   ],
 };

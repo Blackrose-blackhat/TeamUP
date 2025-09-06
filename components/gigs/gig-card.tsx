@@ -1,75 +1,213 @@
-"use client";
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Calendar, MapPin, Users, Clock, Bookmark, Eye } from "lucide-react"
+import Link from "next/link"
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Github } from "lucide-react";
-
-interface GigCardProps {
-  gig: any;
-  onApply?: (gigId: string) => void;
+interface Gig {
+  _id: string
+  title: string
+  description: string
+  skills: string[]
+  teamSize?: number
+  location?: string
+  duration?: string
+  createdAt?: string
+  type?: string
+  // Add other properties as needed
 }
 
-export function GigCard({ gig, onApply }: GigCardProps) {
+interface Props {
+  gig: Gig
+  viewMode?: "grid" | "list"
+}
+
+export function GigCard({ gig, viewMode = "grid" }: Props) {
+  // Truncate text helper for line-clamp fallback
+  const truncateText = (text: string, maxLength: number) => {
+    return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
+  }
+
+  if (viewMode === "list") {
+    return (
+      <Card className="group hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-border dark:border-border bg-card dark:bg-card">
+        <CardContent className="p-6">
+          <div className="flex items-start justify-between gap-6">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex-1 min-w-0">
+                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors group-hover:underline decoration-primary/30">
+                    {gig.title}
+                  </h3>
+                  {gig.type && (
+                    <Badge
+                      variant="secondary"
+                      className="ml-3 text-xs bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-primary/20"
+                    >
+                      {gig.type}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-muted-foreground dark:text-muted-foreground mb-6 text-sm leading-relaxed overflow-hidden">
+                {truncateText(gig.description, 150)}
+              </p>
+
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground dark:text-muted-foreground mb-6">
+                {gig.teamSize && (
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-primary" />
+                    <span>{gig.teamSize} members</span>
+                  </div>
+                )}
+                {gig.location && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="truncate">{gig.location}</span>
+                  </div>
+                )}
+                {gig.duration && (
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-primary" />
+                    <span>{gig.duration}</span>
+                  </div>
+                )}
+                {gig.createdAt && (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-primary" />
+                    <span>Posted {new Date(gig.createdAt).toLocaleDateString()}</span>
+                  </div>
+                )}
+              </div>
+
+              <Separator className="mb-4" />
+
+              <div className="flex flex-wrap gap-2 mb-4">
+                {gig.skills?.slice(0, 6).map((skill,index) => (
+                  <Badge
+                    key={`skill-${index}-${skill}`} 
+                    variant="outline"
+                    className="text-xs hover:bg-primary/10 hover:border-primary/30 transition-colors"
+                  >
+                    {skill}
+                  </Badge>
+                ))}
+                {gig.skills?.length > 6 && (
+                  <Badge variant="outline" className="text-xs bg-muted/50">
+                    +{gig.skills.length - 6} more
+                  </Badge>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-2 shrink-0">
+              <Button variant="outline" size="sm" className="gap-2 hover:bg-muted/50 bg-transparent">
+                <Bookmark className="h-4 w-4" />
+                Save
+              </Button>
+              <Button asChild className="gap-2 bg-primary hover:bg-primary/90">
+                <Link href={`/dashboard/gigs/${gig._id}`}>
+                  <Eye className="h-4 w-4" />
+                  View Details
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Grid view (default)
   return (
-    <div className="p-4 border rounded-lg shadow hover:shadow-lg transition flex flex-col justify-between">
-      {/* Title */}
-      <h3 className="text-xl font-semibold mb-2">{gig.title}</h3>
-
-      {/* Description */}
-      <p className="text-gray-700 mb-3 line-clamp-3">{gig.description}</p>
-
-      {/* Skills */}
-      <div className="flex flex-wrap gap-2 mb-3">
-        {gig.skillsRequired?.map((skill: any) => (
-          <Badge key={skill.name} variant="secondary">
-            {skill.name}
-          </Badge>
-        ))}
-      </div>
-
-      {/* Project Type & Status */}
-      <div className="flex justify-between items-center mb-3 text-sm text-gray-500">
-        <span>Type: {gig.projectType || "N/A"}</span>
-        <span>Status: {gig.status || "Open"}</span>
-      </div>
-
-      {/* Creator */}
-      <div className="flex items-center justify-between mb-3">
-        <div>
-          <p className="font-medium">{gig.createdBy?.name || "Unknown"}</p>
-          <div className="flex items-center gap-2 text-gray-500 text-sm">
-            {gig.createdBy?.github && (
-              <a
-                href={`https://github.com/${gig.createdBy.github}`}
-                target="_blank"
-                rel="noreferrer"
-                className="flex items-center gap-1 hover:underline"
-              >
-                <Github size={14} /> GitHub
-              </a>
-            )}
-            {gig.createdBy?.email && <span>{gig.createdBy.email}</span>}
+    <Card className="group hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-border dark:border-border bg-card dark:bg-card h-full flex flex-col">
+      <CardHeader className="pb-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            <Avatar className="h-10 w-10 shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
+                {gig.title.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-lg font-semibold text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors group-hover:underline decoration-primary/30 overflow-hidden">
+                {truncateText(gig.title, 50)}
+              </h3>
+              {gig.type && (
+                <Badge
+                  variant="secondary"
+                  className="text-xs mt-2 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-primary/20"
+                >
+                  {gig.type}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
+      </CardHeader>
 
-        {/* Apply button */}
-        {onApply && (
-          <Button size="sm" onClick={() => onApply(gig._id)}>
-            Apply
-          </Button>
-        )}
-      </div>
+      <CardContent className="pb-4 flex-1">
+        <p className="text-muted-foreground dark:text-muted-foreground text-sm mb-4 leading-relaxed overflow-hidden">
+          {truncateText(gig.description, 100)}
+        </p>
 
-      {/* Tags */}
-      {gig.tags?.length > 0 && (
-        <div className="flex flex-wrap gap-2 mt-2">
-          {gig.tags.map((tag: string) => (
-            <Badge key={tag} variant="outline">
-              {tag}
+        <div className="space-y-3 text-xs text-muted-foreground dark:text-muted-foreground mb-4">
+          {gig.teamSize && (
+            <div className="flex items-center gap-2">
+              <Users className="h-3 w-3 text-primary" />
+              <span>{gig.teamSize} members needed</span>
+            </div>
+          )}
+          {gig.location && (
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3 w-3 text-primary" />
+              <span className="truncate">{gig.location}</span>
+            </div>
+          )}
+          {gig.duration && (
+            <div className="flex items-center gap-2">
+              <Clock className="h-3 w-3 text-primary" />
+              <span>{gig.duration}</span>
+            </div>
+          )}
+        </div>
+
+        <Separator className="mb-4" />
+
+        <div className="flex flex-wrap gap-1">
+          {gig.skills?.slice(0, 3).map((skill) => (
+            <Badge
+              key={skill}
+              variant="outline"
+              className="text-xs hover:bg-primary/10 hover:border-primary/30 transition-colors"
+            >
+              {skill}
             </Badge>
           ))}
+          {gig.skills?.length > 3 && (
+            <Badge variant="outline" className="text-xs bg-muted/50">
+              +{gig.skills.length - 3}
+            </Badge>
+          )}
         </div>
-      )}
-    </div>
-  );
+      </CardContent>
+
+      <CardFooter className="pt-0 flex gap-2">
+        <Button variant="outline" size="sm" className="flex-1 gap-2 hover:bg-muted/50 bg-transparent">
+          <Bookmark className="h-4 w-4" />
+          Save
+        </Button>
+
+        <Button asChild className="gap-2 bg-primary hover:bg-primary/90">
+          <Link href={`/dashboard/gigs/${gig._id}`}>
+            <Eye className="h-4 w-4" />
+            View Details
+          </Link>
+        </Button>
+      </CardFooter>
+    </Card>
+  )
 }

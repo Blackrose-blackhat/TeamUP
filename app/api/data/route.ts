@@ -5,6 +5,7 @@ import clientPromise from "@/lib/mongodb";
 import Data from "@/models/data.model";
 
 let isConnected = false;
+
 async function connectMongoose() {
   if (isConnected) return;
   await clientPromise;
@@ -13,7 +14,15 @@ async function connectMongoose() {
 }
 
 export async function GET() {
-  await connectMongoose();
-  const dataDoc = await Data.findOne();
-  return NextResponse.json(dataDoc || { skills: [], years: [], institutions: [], genders: [] });
+  try {
+    await connectMongoose();
+
+    // Only fetch the `skills` field
+    const dataDoc = await Data.findOne().select("skills -_id").lean();
+
+    return NextResponse.json(dataDoc?.skills || []);
+  } catch (err: any) {
+    console.error("❌ Error fetching skills:", err);
+    return NextResponse.json({ skills: [] }, { status: 500 });
+  }
 }
