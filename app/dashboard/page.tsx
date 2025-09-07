@@ -8,6 +8,7 @@ import { Rocket, Target, CheckCircle, Clock, User, TrendingUp, Lightbulb, Star }
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
+import SavedGigs from "@/components/gigs/view/saved-gigs"
 
 export default function DashboardPage() {
   const [stats, setStats] = useState({ postedGigs: 0, applications: 0, completed: 0 })
@@ -33,10 +34,10 @@ export default function DashboardPage() {
     fetchDashboard()
   }, [])
   const getUserGigStatus = (gig: any, userId: string) => {
-  if (gig.team?.includes(userId)) return "Accepted";
-  if (gig.applicants?.some((a: any) => a.user === userId)) return "In Progress";
-  return "Not Applied";
-};
+    if (gig.team?.includes(userId)) return "Accepted";
+    if (gig.applicants?.some((a: any) => a.user === userId)) return "In Progress";
+    return "Not Applied";
+  };
 
 
   const getGreeting = () => {
@@ -75,21 +76,32 @@ export default function DashboardPage() {
   const statusChartData = Object.entries(applicationStatusData).map(([status, count]) => ({
     name: status,
     value: count,
-    color: status === "Accepted" ? "#10b981" : status === "Rejected" ? "#ef4444" : "#f59e0b",
+    color:
+      status === "Accepted"
+      ? "#10B981" // green-500
+      : status === "Rejected"
+        ? "#EF4444" // red-500
+        : "#F59E0B", // yellow-500 for pending/others
   }))
 
   const skillProgressData = [
     { name: "Current", value: skillMatch },
     { name: "Target", value: 100 - skillMatch },
   ]
-  const {data} = useSession();
-  const user = data?.user?.name;
+  const { data } = useSession();
+  const user = data?.user?.username;
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
       <div className=" text-white p-6 rounded-lg border border-slate-600">
         <div className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">{getGreeting()}!{user} </h1>
+            <h1 className="text-3xl font-bold tracking-tight">
+              {getGreeting()}, <span className="text-primary">{user}</span> 👋
+            </h1>
+            <p className="text-muted-foreground mt-1 text-lg">
+              Ready to create something amazing today?
+            </p>
+
             <p className="text-slate-300 text-lg mt-1">
               Your gigs dashboard is ready. Keep building your network and skills!
             </p>
@@ -105,29 +117,30 @@ export default function DashboardPage() {
             value: stats.postedGigs,
             icon: Rocket,
             description: "Active listings",
-            color: "text-blue-400",
+            color: "text-primary",
           },
           {
             label: "Applications",
             value: stats.applications,
             icon: Target,
             description: "Total received",
-            color: "text-purple-400",
+            color: "text-secondary",
           },
           {
             label: "Completed",
             value: stats.completed,
             icon: CheckCircle,
             description: "Successfully finished",
-            color: "text-green-400",
+            color: "text-success", // add this in tailwind config if not present
           },
           {
             label: "Skill Match",
             value: `${skillMatch}%`,
             icon: Lightbulb,
             description: "Profile compatibility",
-            color: "text-orange-400",
+            color: "text-warning", // add this too
           },
+
         ].map((stat, idx) => {
           const IconComponent = stat.icon
           return (
@@ -150,7 +163,7 @@ export default function DashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card className="border-slate-700 ">
+        <Card className="border-slate-700 bg-transparent ">
           <CardHeader>
             <CardTitle className="text-white flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
@@ -171,7 +184,7 @@ export default function DashboardPage() {
                     color: "#fff",
                   }}
                 />
-                <Bar dataKey="value" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="value" fill="#00bd7e" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -251,7 +264,11 @@ export default function DashboardPage() {
           </div>
         </CardContent>
       </Card>
+      <Separator className="border-slate-700" />
 
+      <SavedGigs />
+
+      <Separator className="border-slate-700" />
       <Card className="border-slate-700 ">
         <CardHeader className="pb-4">
           <div className="flex items-center gap-2">
@@ -270,7 +287,8 @@ export default function DashboardPage() {
             </div>
           ) : (
             applications.map((app) => (
-              <div
+              <Link
+              href={`/dashboard/gigs/${app._id}`}
                 key={app._id}
                 className="flex items-center justify-between p-4 rounded-lg border border-slate-600 bg-slate-700/30 hover:bg-slate-700/50 transition-colors duration-200"
               >
@@ -284,7 +302,7 @@ export default function DashboardPage() {
                   </div>
                 </div>
                 <Badge className={`${getStatusColor(app.status || "Pending")} border`}>{app.status || "Pending"}</Badge>
-              </div>
+              </Link>
             ))
           )}
         </CardContent>

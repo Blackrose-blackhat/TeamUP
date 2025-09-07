@@ -8,12 +8,14 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { useSession } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import SkillsBadge from "@/components/ui/skill-badge"
+import Link from "next/link"
 
 interface Props {
   gig: any
 }
 
 export default function GigSidebar({ gig }: Props) {
+  console.log(gig);
   const { data } = useSession()
   const isCreator = gig.createdBy?.email === data?.user?.email
   const [applicants, setApplicants] = useState(gig.applicants || [])
@@ -94,10 +96,10 @@ export default function GigSidebar({ gig }: Props) {
                     >
                       <div className="flex items-center gap-3 mb-3">
                         <div className="h-10 w-10 rounded-full bg-primary/10 text-primary text-sm font-medium flex items-center justify-center shrink-0">
-                          {applicant.name?.charAt(0)?.toUpperCase() ?? "U"}
+                          {applicant.username?.charAt(0)?.toUpperCase() ?? "U"}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{applicant.name || "Unknown"}</p>
+                          <p className="text-sm font-medium truncate">{applicant.username || "Unknown"}</p>
                           <p className="text-xs text-muted-foreground truncate">{applicant.email || "No email"}</p>
                           {applicant.skills && <SkillsBadge skills={applicant.skills} limit={2} />}
                         </div>
@@ -114,7 +116,7 @@ export default function GigSidebar({ gig }: Props) {
                           onClick={() => handleAccept(applicant._id)}
                           disabled={loadingIds.includes(applicant._id) || applicant.status === "Accepted"}
                         >
-                          <Check className="h-3 w-3 mr-1" /> 
+                          <Check className="h-3 w-3 mr-1" />
                           {loadingIds.includes(applicant._id) ? "Accepting..." : "Accept"}
                         </Button>
                         <Button size="sm" variant="destructive" className="flex-1 h-8 text-xs">
@@ -132,9 +134,43 @@ export default function GigSidebar({ gig }: Props) {
                 </p>
               </div>
             )}
+            {/* Team Section */}
+            
+
           </CardContent>
         </Card>
       )}
+      {gig.team && gig.team.length > 0 && (
+              <Card className="border-0 shadow-lg bg-card/50 backdrop-blur-sm">
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Users className="h-5 w-5" /> Team ({gig.team.length})
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-0">
+                  <ScrollArea className="h-40 px-6 pb-6">
+                    <div className="space-y-4">
+                      {gig.team.map((member: any) => (
+                        <Link
+                        href={`/dashboard/profile/${member._id}`}
+                          key={member._id}
+                          className="border rounded-lg p-3 hover:bg-muted/40 transition-colors flex items-center gap-3"
+                        >
+                          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary text-sm font-medium flex items-center justify-center shrink-0">
+                            {member.username?.charAt(0)?.toUpperCase() ?? "U"}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{member.username || "Unknown"}</p>
+                            <p className="text-xs text-muted-foreground truncate">{member.email || "No email"}</p>
+                            {member.skills && <SkillsBadge skills={member.skills} limit={3} />}
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </CardContent>
+              </Card>
+            )}
     </div>
   )
 }

@@ -1,3 +1,6 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
@@ -16,7 +19,6 @@ interface Gig {
   duration?: string
   createdAt?: string
   type?: string
-  // Add other properties as needed
 }
 
 interface Props {
@@ -25,26 +27,44 @@ interface Props {
 }
 
 export function GigCard({ gig, viewMode = "grid" }: Props) {
-  // Truncate text helper for line-clamp fallback
+  const [isSaved, setIsSaved] = useState(false)
+
+  // Check if gig already saved
+  useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem("savedGigs") || "[]") as Gig[]
+    setIsSaved(saved.some((g) => g._id === gig._id))
+  }, [gig._id])
+
+  const handleSave = () => {
+    const saved = JSON.parse(localStorage.getItem("savedGigs") || "[]") as Gig[]
+    if (saved.some((g) => g._id === gig._id)) return // already saved
+
+    const updated = [...saved, gig]
+    localStorage.setItem("savedGigs", JSON.stringify(updated))
+    setIsSaved(true)
+  }
+
+  // Helper for truncation
   const truncateText = (text: string, maxLength: number) => {
     return text.length > maxLength ? text.substring(0, maxLength) + "..." : text
   }
 
+  // ---------------- LIST VIEW ----------------
   if (viewMode === "list") {
     return (
-      <Card className="group hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-border dark:border-border bg-card dark:bg-card">
+      <Card className="group hover:shadow-lg transition-all duration-300 border-border bg-card">
         <CardContent className="p-6">
           <div className="flex items-start justify-between gap-6">
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between mb-4">
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-semibold text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors group-hover:underline decoration-primary/30">
+                  <h3 className="text-xl font-semibold hover:text-primary transition-colors group-hover:underline decoration-primary/30">
                     {gig.title}
                   </h3>
                   {gig.type && (
                     <Badge
                       variant="secondary"
-                      className="ml-3 text-xs bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-primary/20"
+                      className="ml-3 text-xs bg-primary/10 text-primary border-primary/20"
                     >
                       {gig.type}
                     </Badge>
@@ -52,11 +72,11 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
                 </div>
               </div>
 
-              <p className="text-muted-foreground dark:text-muted-foreground mb-6 text-sm leading-relaxed overflow-hidden">
+              <p className="text-muted-foreground mb-6 text-sm leading-relaxed overflow-hidden">
                 {truncateText(gig.description, 150)}
               </p>
 
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground dark:text-muted-foreground mb-6">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 text-sm text-muted-foreground mb-6">
                 {gig.teamSize && (
                   <div className="flex items-center gap-2">
                     <Users className="h-4 w-4 text-primary" />
@@ -86,9 +106,9 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
               <Separator className="mb-4" />
 
               <div className="flex flex-wrap gap-2 mb-4">
-                {gig.skills?.slice(0, 6).map((skill,index) => (
+                {gig.skills?.slice(0, 6).map((skill, index) => (
                   <Badge
-                    key={`skill-${index}-${skill}`} 
+                    key={`skill-${index}-${skill}`}
                     variant="outline"
                     className="text-xs hover:bg-primary/10 hover:border-primary/30 transition-colors"
                   >
@@ -104,9 +124,15 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
             </div>
 
             <div className="flex flex-col gap-2 shrink-0">
-              <Button variant="outline" size="sm" className="gap-2 hover:bg-muted/50 bg-transparent">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 hover:bg-muted/50 bg-transparent"
+                onClick={handleSave}
+                disabled={isSaved}
+              >
                 <Bookmark className="h-4 w-4" />
-                Save
+                {isSaved ? "Saved" : "Save"}
               </Button>
               <Button asChild className="gap-2 bg-primary hover:bg-primary/90">
                 <Link href={`/dashboard/gigs/${gig._id}`}>
@@ -121,9 +147,9 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
     )
   }
 
-  // Grid view (default)
+  // ---------------- GRID VIEW ----------------
   return (
-    <Card className="group hover:shadow-lg dark:hover:shadow-xl transition-all duration-300 border-border dark:border-border bg-card dark:bg-card h-full flex flex-col">
+    <Card className="group hover:shadow-lg transition-all duration-300 border-border bg-card h-full flex flex-col">
       <CardHeader className="pb-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -133,13 +159,13 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
               </AvatarFallback>
             </Avatar>
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold text-foreground dark:text-foreground hover:text-primary dark:hover:text-primary transition-colors group-hover:underline decoration-primary/30 overflow-hidden">
+              <h3 className="text-lg font-semibold hover:text-primary transition-colors group-hover:underline decoration-primary/30 overflow-hidden">
                 {truncateText(gig.title, 50)}
               </h3>
               {gig.type && (
                 <Badge
                   variant="secondary"
-                  className="text-xs mt-2 bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary border-primary/20"
+                  className="text-xs mt-2 bg-primary/10 text-primary border-primary/20"
                 >
                   {gig.type}
                 </Badge>
@@ -150,11 +176,11 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
       </CardHeader>
 
       <CardContent className="pb-4 flex-1">
-        <p className="text-muted-foreground dark:text-muted-foreground text-sm mb-4 leading-relaxed overflow-hidden">
+        <p className="text-muted-foreground text-sm mb-4 leading-relaxed overflow-hidden">
           {truncateText(gig.description, 100)}
         </p>
 
-        <div className="space-y-3 text-xs text-muted-foreground dark:text-muted-foreground mb-4">
+        <div className="space-y-3 text-xs text-muted-foreground mb-4">
           {gig.teamSize && (
             <div className="flex items-center gap-2">
               <Users className="h-3 w-3 text-primary" />
@@ -196,9 +222,15 @@ export function GigCard({ gig, viewMode = "grid" }: Props) {
       </CardContent>
 
       <CardFooter className="pt-0 flex gap-2">
-        <Button variant="outline" size="sm" className="flex-1 gap-2 hover:bg-muted/50 bg-transparent">
+        <Button
+          variant="outline"
+          size="sm"
+          className="flex-1 gap-2 hover:bg-muted/50 bg-transparent"
+          onClick={handleSave}
+          disabled={isSaved}
+        >
           <Bookmark className="h-4 w-4" />
-          Save
+          {isSaved ? "Saved" : "Save"}
         </Button>
 
         <Button asChild className="gap-2 bg-primary hover:bg-primary/90">

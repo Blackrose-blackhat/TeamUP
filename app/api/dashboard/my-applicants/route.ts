@@ -1,13 +1,11 @@
 import { getServerSession } from "next-auth";
 import { authOptions } from "../../auth/[...nextauth]/route";
 import Gig from "@/models/gig.model";
-import clientPromise from "@/lib/mongodb";
 import mongoose from "mongoose";
 
 let isConnected = false;
 async function connectMongoose() {
   if (isConnected) return;
-  await clientPromise;
   await mongoose.connect(process.env.MONGODB_URI!);
   isConnected = true;
 }
@@ -17,22 +15,31 @@ export async function GET() {
   const session = await getServerSession(authOptions);
 
   if (!session?.user?.id) {
-    return new Response(JSON.stringify({ success: false, error: "Unauthorized" }), { status: 401 });
+    return new Response(
+      JSON.stringify({ success: false, error: "Unauthorized" }),
+      { status: 401 }
+    );
   }
 
+  const userId = new mongoose.Types.ObjectId(session.user.id);
+
+  // Find gigs where user is in team or applicants
   const gigs = await Gig.find({
     $or: [
-      { team: session.user.id },
-      { "applicants.user": session.user.id }
+      { team: userId },
+      { applicants: userId }
     ]
   })
     .sort({ createdAt: -1 })
-    .limit(10);
-
+    .limit(10)
+    .lean();
+  console.log(gigs);
   const formattedGigs = gigs.map(gig => {
-    let status = "Not Applied";
-    if (gig.team?.includes(session.user.id)) status = "Accepted";
-    else if (gig.applicants?.some((a: any) => a.user === session.user.id)) status = "In Progress";
+    let status = "In Progress";
+
+    if (gig.team?.some((id: any) => id.equals(userId))) status = "Accepted";
+    else if (gig.applicants?.some((a: any) => new mongoose.Types.ObjectId(a.user).equals(userId)))
+      status = "In Progress";
 
     return {
       _id: gig._id,
@@ -42,5 +49,8 @@ export async function GET() {
     };
   });
 
-  return new Response(JSON.stringify({ success: true, gigs: formattedGigs }), { status: 200 });
+  return new Response(
+    JSON.stringify({ success: true, gigs: formattedGigs }),
+    { status: 200 }
+  );
 }

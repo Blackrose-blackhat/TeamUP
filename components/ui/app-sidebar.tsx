@@ -1,22 +1,22 @@
-// components/app-sidebar.tsx
 "use client";
 
-import { signOut } from "next-auth/react";
-import { 
-  User, 
-  Settings, 
-  Briefcase, 
-  LogOut, 
-  Zap, 
-  Plus,
+import { signOut, useSession } from "next-auth/react";
+import {
+  LayoutGrid,
+  Users,
+  Briefcase,
   List,
-  Eye,
-  FileStack
+  Plus,
+  FileStack,
+  ChevronRight,
+  Zap,
+  Settings,
+  LogOut,
+  User,
 } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
-  SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
   SidebarGroupLabel,
@@ -27,70 +27,56 @@ import {
   SidebarMenuSub,
   SidebarMenuSubButton,
   SidebarMenuSubItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronRight } from "lucide-react";
-
-// Main navigation items
-const mainItems = [
-  {
-    title: "Profile",
-    url: "/dashboard/profile",
-    icon: User,
-  },
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: Settings,
-  },
-];
-
-// Gig-related items with sub-navigation
-const gigItems = [
-  {
-    title: "Browse Gigs",
-    url: "/dashboard/gigs",
-    icon: List,
-    description: "View all available gigs"
-  },
-  {
-    title: "Create Gig",
-    url: "/dashboard/gigs/create",
-    icon: Plus,
-    description: "Post a new gig"
-  },
-  {
-    title: "Your Gigs",
-    url: "/dashboard/gigs/mine",
-    icon: FileStack,
-    description: "View your posted Gigs"
-  },
-];
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function AppSidebar() {
+  const { data: session } = useSession();
+  const userId = session?.user?.id;
+  const user = session?.user;
+
+  // Navigation
+  const mainItems = [
+    { title: "Dashboard", url: "/dashboard", icon: LayoutGrid },
+    { title: "Network", url: "/dashboard/network", icon: Users },
+  ];
+
+  const gigItems = [
+    { title: "Browse Gigs", url: "/dashboard/gigs", icon: List },
+    { title: "Create Gig", url: "/dashboard/gigs/create", icon: Plus },
+    { title: "Your Gigs", url: "/dashboard/gigs/mine", icon: FileStack },
+  ];
+
   return (
     <Sidebar collapsible="icon">
+      {/* Header */}
       <SidebarHeader>
         <div className="py-2 flex items-center">
-          {/* Logo - always visible */}
           <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg mr-3 group-data-[collapsible=icon]:mr-0">
             <Zap className="w-5 h-5 text-white" />
           </div>
-          {/* Title - hidden when collapsed */}
           <h2 className="text-xl font-bold group-data-[collapsible=icon]:hidden">
-            Dashboard
+            TEAM UP
           </h2>
         </div>
       </SidebarHeader>
-      
+
       <SidebarContent>
-        {/* Main Navigation */}
+        {/* Main */}
         <SidebarGroup>
-          <SidebarGroupLabel>Navigation</SidebarGroupLabel>
+          <SidebarGroupLabel>Main</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {mainItems.map((item) => (
@@ -107,7 +93,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {/* Gigs Section */}
+        {/* Gigs */}
         <SidebarGroup>
           <SidebarGroupLabel>Gigs</SidebarGroupLabel>
           <SidebarGroupContent>
@@ -142,18 +128,50 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
+      {/* User Profile + Menu */}
       <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <div className="flex items-center gap-3 p-2 rounded-lg border cursor-pointer bg-black hover:bg-black/70 transition-colors">
+              <Avatar className="h-8 w-8">
+               
+                  <AvatarImage src={user?.image} />
+               
+                  <AvatarFallback>
+                    {user?.username?.charAt(0) || "U"}
+                  </AvatarFallback>
+                
+              </Avatar>
+              <div className="flex flex-col text-sm leading-tight group-data-[collapsible=icon]:hidden">
+                <span className="font-medium">{user?.username || "User"}</span>
+                <span className="text-xs text-muted-foreground">
+                  {user?.email}
+                </span>
+              </div>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="end" className="w-48">
+            <DropdownMenuItem asChild>
+              <a href={userId ? `/dashboard/profile/${userId}` : "/dashboard/profile"}>
+                <User className="mr-2 h-4 w-4" />
+                <span>View Profile</span>
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a href="/dashboard/settings">
+                <Settings className="mr-2 h-4 w-4" />
+                <span>Settings</span>
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuItem
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className=""
             >
-              <LogOut />
+              <LogOut className="mr-2 h-4 w-4" />
               <span>Logout</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarFooter>
     </Sidebar>
   );

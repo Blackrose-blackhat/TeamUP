@@ -241,7 +241,7 @@ export function GigListClient({ gigs, pagination, searchParams, error }: GigList
            
             <Link 
               href="/dashboard/gigs/create"
-              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-black bg-white hover:bg-gray-200"
+              className="inline-flex items-center px-4 py-2 text-sm font-medium rounded-md text-black bg-primary hover:bg-primary/80"
             >
               Create one!
             </Link>

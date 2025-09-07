@@ -23,9 +23,9 @@ export async function GET(req: Request, { params }: { params: { id: string } }) 
     await connectMongoose();
 
     const gig = await Gig.findById(params.id)
-      .populate("createdBy", "name email github skills profilePhoto")
-      .populate("applicants", "name email github skills profilePhoto")
-      .populate("team" , "name email skills profilePhoto")
+      .populate("createdBy", "name username email github skills profilePhoto")
+      .populate("applicants", "username email github skills profilePhoto")
+      .populate("team" , "username email skills profilePhoto")
 
     if (!gig) {
       return NextResponse.json({ error: "Gig not found" }, { status: 404 });
@@ -110,6 +110,9 @@ export async function POST(req: Request, { params }: { params: { id: string } })
 
   if (gig.applicants.includes(session.user.id)) {
     return NextResponse.json({ message: "Already applied" }, { status: 400 });
+  }
+  if (gig.team.includes(session.user.id)) {
+    return NextResponse.json({ message: "You are already onboarded in team" }, { status: 400 });
   }
 
   gig.applicants.push(session.user.id);

@@ -7,7 +7,10 @@ const errorMessages: Record<string, string> = {
     "This email is already linked with another provider. Please log in with the original provider you used.",
   AccessDenied: "You don’t have access to this resource.",
   Configuration: "There was a configuration issue with authentication.",
+  DeletedUser:
+    "Your account was previously deleted. Please create a new account to continue.",
 }
+
 
 export default function ErrorPage() {
   const params = useSearchParams()

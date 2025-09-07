@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Github } from "lucide-react"
 
 interface Creator {
-  name: string
+  username: string
   email: string
   github?: string
   image?: string
@@ -26,7 +26,7 @@ export default function CreatorCard({ creator }: { creator: Creator }) {
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <p className="font-semibold truncate">{creator.name ?? "Unknown"}</p>
+            <p className="font-semibold truncate">{creator.username ?? "Unknown"}</p>
             <p className="text-sm text-muted-foreground truncate">{creator.email ?? "No email"}</p>
           </div>
         </div>

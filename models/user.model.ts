@@ -5,7 +5,7 @@ export interface IUser extends Document {
   username?: string;
   profilePhoto?: string;
   skills?: string[];
-  year?: number;
+  academicYear?: "1" | "2" | "3" | "4" | "Passout"; // <-- string enum
   gender?: string;
   college?: string;
   bio?: string;
@@ -25,7 +25,10 @@ const userSchema = new Schema<IUser>(
     username: { type: String },
     profilePhoto: { type: String },
     skills: [{ type: String }],
-    year: { type: Number },
+    academicYear: {                       // <-- renamed and string enum
+      type: String,
+      enum: ["1", "2", "3", "4", "Passout"],
+    },
     gender: { type: String },
     college: { type: String },
     bio: { type: String },

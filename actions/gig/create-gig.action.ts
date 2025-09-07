@@ -6,7 +6,7 @@ export async function createGig(data: any) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
-
+  console.log(res);
   if (!res.ok) {
     const error = await res.json();
     throw new Error(error.error || "Failed to create gig");
