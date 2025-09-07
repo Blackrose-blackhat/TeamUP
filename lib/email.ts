@@ -12,7 +12,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-type EmailType = "welcome" | "gig_applied" | "gig_accepted";
+type EmailType = "welcome" | "gig_applied" | "gig_accepted" | "contact_creator";
 
 export async function sendEmail(
   type: EmailType,
@@ -46,11 +46,7 @@ export async function sendEmail(
         <div style="${baseStyle}">
           <h1 style="color:#4f46e5;">Welcome ${data?.username || "User"}!</h1>
           <p>Thanks for completing your profile. We’re thrilled to have you onboard 🚀</p>
-          <p>Explore gigs, connect with creators, and start building your journey today!</p>
-          <a href="${process.env.APP_URL}" style="${buttonStyle}">Go to Dashboard</a>
-          <p style="margin-top:20px; font-size:12px; color:#888;">
-            If you did not create an account, you can safely ignore this email.
-          </p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}" style="${buttonStyle}">Go to Dashboard</a>
         </div>
       `;
       break;
@@ -59,13 +55,26 @@ export async function sendEmail(
       subject = "Application Received ✅";
       html = `
         <div style="${baseStyle}">
-          <h2 style="color:#4f46e5;">Hi ${data?.username || "there"},</h2>
-          <p>Your application for <strong>${data?.gigTitle || "a gig"}</strong> has been successfully received.</p>
-          <p>The creator will review your application and contact you soon. Stay tuned!</p>
-          <a href="${process.env.APP_URL}/dashboard/gigs" style="${buttonStyle}">View Your Applications</a>
-          <p style="margin-top:20px; font-size:12px; color:#888;">
-            If you did not apply, please ignore this email.
-          </p>
+          <h2 style="color:#4f46e5;">Hi there,</h2>
+          <p>You have received a new application for <strong>${data?.gigTitle || "a gig"}</strong>.</p>
+          <p><strong>Applicant Name:</strong> ${data?.username || "N/A"}</p>
+          <p><strong>Applicant Email:</strong> ${data?.applicantEmail || "N/A"}</p>
+          <p><strong>Applicant's Message:</strong></p>
+          <p style="padding:10px; background:#f3f3f3; border-radius:6px;">${data?.message || "No message provided."}</p>
+        </div>
+      `;
+      break;
+
+    case "contact_creator":
+      subject = `New Message from ${data?.applicantName || "an applicant"} 📩`;
+      html = `
+        <div style="${baseStyle}">
+          <h2 style="color:#4f46e5;">Hi ${data?.creatorName || "Creator"},</h2>
+          <p>You have received a message from <strong>${data?.applicantName || "an applicant"}</strong> regarding your gig <strong>${data?.gigTitle || ""}</strong>.</p>
+          <p><strong>Applicant Email:</strong> ${data?.applicantEmail || "N/A"}</p>
+          <p><strong>Message:</strong></p>
+          <p style="padding:10px; background:#f3f3f3; border-radius:6px;">${data?.message || "No message provided."}</p>
+          <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/gigs" style="${buttonStyle}">View Gig</a>
         </div>
       `;
       break;
@@ -76,18 +85,13 @@ export async function sendEmail(
         <div style="${baseStyle}">
           <h2 style="color:#4f46e5;">Hi ${data?.username || "there"},</h2>
           <p>Great news! You’ve been accepted for the gig <strong>${data?.gigTitle || "a gig"}</strong>.</p>
-          <p>Get ready to collaborate and make an impact 🚀</p>
-          <a href="${process.env.APP_URL}/dashboard/gigs" style="${buttonStyle}">View Gig Details</a>
-          <p style="margin-top:20px; font-size:12px; color:#888;">
-            If you did not apply, please ignore this email.
-          </p>
         </div>
       `;
       break;
   }
 
   await transporter.sendMail({
-    from: `"Mushraf from TeamUp.dev" <${process.env.GMAIL_USER}>`,
+    from: `"TeamUp.dev" <${process.env.GMAIL_USER}>`,
     to,
     subject,
     html,

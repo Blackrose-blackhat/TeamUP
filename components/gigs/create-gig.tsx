@@ -414,7 +414,7 @@ export default function CreateGigForm() {
       setIsExploding(true);
       setTimeout(() => setIsExploding(false), 4000);
       console.log("✅ Gig created:", result);
-
+      redirect("/dashboard/gigs/mine")
       // TODO: redirect or show toast
     } catch (err) {
       console.error(err);

@@ -9,6 +9,7 @@ import GigActions from "./gig-action"
 import { toast } from "sonner"
 import { Button } from "@/components/ui/button"
 import { useSession } from "next-auth/react"
+import ContactCreatorDialog from "../appilicants/contact-creator"
 
 interface Skill {
   _id: string
@@ -182,10 +183,8 @@ export default function GigMainInfo({ gig }: Props) {
               </>
             )}
           </Button>
-          <Button variant="outline" size="lg" className="sm:w-auto bg-transparent">
-            <Mail className="h-4 w-4 mr-2" />
-            Contact Creator
-          </Button>
+          <ContactCreatorDialog creator={gig.createdBy} gigId={gig._id} />
+
         </div>
       </CardContent>
     </Card>
