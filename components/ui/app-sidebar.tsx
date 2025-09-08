@@ -131,11 +131,11 @@ export function AppSidebar() {
       </SidebarContent>
 
       {/* User Profile + Menu */}
-      <SidebarFooter>
+      <SidebarFooter className="border-t">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-3 p-2 rounded-lg border cursor-pointer bg-black hover:bg-black/70 transition-colors">
-              <Avatar className="h-8 w-8">
+            <div className="flex items-center gap-3 p-2 rounded-lg  cursor-pointer  transition-colors">
+              <Avatar className="h-6 w-6">
                
                   <AvatarImage src={user?.image} />
                
