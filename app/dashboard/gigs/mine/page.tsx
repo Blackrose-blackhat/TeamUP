@@ -3,11 +3,14 @@ import { headers } from "next/headers";
 
 async function fetchMyGigs() {
     const headersList = await headers();
+    const protocol = headersList.get("x-forwarded-proto") || "http";
+    const host = headersList.get("host");
+    const baseUrl = `${protocol}://${host}`;
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/gigs/mine`, {
-            cache: "no-store", // always fresh
+        const res = await fetch(`${baseUrl}/api/gigs/mine`, {
+            cache: "no-store",
             headers: {
-                'Cookie': headersList.get('cookie') || '', //always use this when using nextAUTH
+                Cookie: headersList.get("cookie") || "", // preserve session for next-auth
             },
         });
 
@@ -22,6 +25,7 @@ async function fetchMyGigs() {
             error: "Failed to load your gigs",
         };
     }
+
 }
 
 export default async function MyGigsPage() {

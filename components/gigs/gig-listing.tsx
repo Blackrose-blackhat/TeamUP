@@ -7,6 +7,7 @@ import { GigFiltersSidebar } from "@/components/gigs/GigFilterSidebar";
 import { Button } from "@/components/ui/button";
 import { Filter, Grid, List as ListIcon } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface Gig {
   _id: string;
@@ -54,7 +55,7 @@ interface GigListClientProps {
 export function GigListClient({ gigs, pagination, searchParams, error }: GigListClientProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-
+  const pathname = usePathname();
   // Build current URL params for pagination
   const buildUrl = (page: number) => {
     const params = new URLSearchParams();
@@ -107,7 +108,7 @@ export function GigListClient({ gigs, pagination, searchParams, error }: GigList
         {/* Header with controls */}
         <div className="flex justify-between items-center mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-white">Browse Gigs</h1>
+            <h1 className="text-2xl font-bold text-white">{pathname == "/dashboard/gigs/mine" ? "Your Gigs" : "Browse Gigs"}</h1>
             <p className="text-gray-400 mt-1">
               {gigs.length > 0 ? `Found ${pagination.total} gigs` : 'Find the perfect project to join'}
             </p>
