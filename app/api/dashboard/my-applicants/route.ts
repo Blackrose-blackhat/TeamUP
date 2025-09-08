@@ -33,13 +33,22 @@ export async function GET() {
     .sort({ createdAt: -1 })
     .limit(10)
     .lean();
-  console.log(gigs);
-  const formattedGigs = gigs.map(gig => {
+
+  const formattedGigs = gigs.map((gig) => {
     let status = "In Progress";
 
-    if (gig.team?.some((id: any) => id.equals(userId))) status = "Accepted";
-    else if (gig.applicants?.some((a: any) => new mongoose.Types.ObjectId(a.user).equals(userId)))
+    // Check if user is in team
+    if (gig.team?.some((id: any) => new mongoose.Types.ObjectId(id).equals(userId))) {
+      status = "Accepted";
+    }
+    // Otherwise, check if user is in applicants
+    else if (
+      gig.applicants?.some(
+        (a: any) => new mongoose.Types.ObjectId(a.user).equals(userId)
+      )
+    ) {
       status = "In Progress";
+    }
 
     return {
       _id: gig._id,

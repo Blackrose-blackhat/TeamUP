@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { User, Gig } from "@/models";
-import clientPromise from "@/lib/mongodb";
 import mongoose from "mongoose";
 
 let isConnected = false;
@@ -23,15 +22,19 @@ export async function GET() {
   }
 
   try {
-    const user = await User.findById(session.user.id);
+    const user = await User.findById(session.user.id).lean();
     if (!user) throw new Error("User not found");
 
     // Recommend gigs based on matching skills
-    const gigs = await Gig.find({ status: "Open" });
+    const gigs = await Gig.find({ status: "Open" }).lean();
+
     const recommended = gigs
       .map((gig) => {
-        const matchCount = gig.skills?.filter((s: string) => user.skills.includes(s)).length || 0;
-        return { ...gig.toObject(), matchScore: matchCount };
+        const matchCount = gig.skills?.filter((skill: string) =>
+          user.skills.includes(skill)
+        ).length || 0;
+
+        return { ...gig, matchScore: matchCount };
       })
       .sort((a, b) => b.matchScore - a.matchScore)
       .slice(0, 5); // top 5 recommended gigs

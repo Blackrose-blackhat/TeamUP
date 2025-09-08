@@ -33,11 +33,12 @@ export default function DashboardPage() {
 
     fetchDashboard()
   }, [])
-  const getUserGigStatus = (gig: any, userId: string) => {
-    if (gig.team?.includes(userId)) return "Accepted";
-    if (gig.applicants?.some((a: any) => a.user === userId)) return "In Progress";
-    return "Not Applied";
-  };
+ const getUserGigStatus = (gig: any, userId: string) => {
+  if (gig.team?.some((id: string) => id === userId)) return "Accepted";
+  if (gig.applicants?.some((a: any) => a.user === userId)) return "In Progress";
+  return "Not Applied";
+};
+
 
 
   const getGreeting = () => {

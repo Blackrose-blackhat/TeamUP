@@ -3,7 +3,6 @@ import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import { User, Gig } from "@/models";
-import clientPromise from "@/lib/mongodb";
 import mongoose from "mongoose";
 
 let isConnected = false;
@@ -23,15 +22,23 @@ export async function GET() {
   }
 
   try {
-    const user = await User.findById(session.user.id);
+    const user = await User.findById(session.user.id).lean();
     if (!user) throw new Error("User not found");
 
-    const allGigs = await Gig.find({ status: "Open" });
-    const totalSkills = allGigs.reduce((acc, gig) => acc.concat(gig.skills || []), [] as string[]);
+    const allGigs = await Gig.find({ status: "Open" }).lean();
+    const totalSkills = allGigs.reduce(
+      (acc, gig) => acc.concat(gig.skills || []),
+      [] as string[]
+    );
 
-    const matchedSkills = user.skills.filter((skill: string) => totalSkills.includes(skill));
+    const matchedSkills = user.skills.filter((skill: string) =>
+      totalSkills.includes(skill)
+    );
 
-    const percentage = totalSkills.length > 0 ? Math.round((matchedSkills.length / totalSkills.length) * 100) : 0;
+    const percentage =
+      totalSkills.length > 0
+        ? Math.round((matchedSkills.length / totalSkills.length) * 100)
+        : 0;
 
     return NextResponse.json({ success: true, percentage });
   } catch (err: any) {
