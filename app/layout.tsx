@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ClientProvider from "@/providers/ClientProvider";
+import Script from "next/script";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,8 +27,22 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* ✅ Plausible script */}
+        <Script
+          defer
+          data-domain="teamup.vercel.app"
+          src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+        />
+        <Script id="plausible-init">
+          {`
+            window.plausible = window.plausible || function() { 
+              (window.plausible.q = window.plausible.q || []).push(arguments) 
+            }
+          `}
+        </Script>
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        {/* Wrap client components inside ClientProvider */}
         <ClientProvider>{children}</ClientProvider>
       </body>
     </html>
