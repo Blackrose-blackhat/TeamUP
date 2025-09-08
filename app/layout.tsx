@@ -18,6 +18,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TeamUp",
   description: "Skill-based AI project matching platform",
+  icons: {
+    icon: "/favicon.ico", // ✅ Place favicon.ico inside /public
+  },
 };
 
 export default function RootLayout({
@@ -41,6 +44,9 @@ export default function RootLayout({
             }
           `}
         </Script>
+
+        {/* ✅ Favicon */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClientProvider>{children}</ClientProvider>
