@@ -41,6 +41,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import Image from "next/image";
+import { logo } from "@/public/assets";
 
 export function AppSidebar() {
   const { data: session } = useSession();
@@ -64,8 +66,8 @@ export function AppSidebar() {
       {/* Header */}
       <SidebarHeader>
         <div className="py-2 flex items-center">
-          <div className="flex items-center justify-center w-8 h-8 bg-blue-600 rounded-lg mr-3 group-data-[collapsible=icon]:mr-0">
-            <Zap className="w-5 h-5 text-white" />
+          <div className="flex items-center justify-center w-10 h-10   rounded-lg mr-3 group-data-[collapsible=icon]:mr-0">
+            <Image src={logo} alt="logo" />
           </div>
           <h2 className="text-xl font-bold group-data-[collapsible=icon]:hidden">
             TEAM UP
