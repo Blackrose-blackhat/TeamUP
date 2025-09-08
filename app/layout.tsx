@@ -18,9 +18,6 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "TeamUp",
   description: "Skill-based AI project matching platform",
-  icons: {
-    icon: "/favicon.ico", // ✅ Place favicon.ico inside /public
-  },
 };
 
 export default function RootLayout({
@@ -31,22 +28,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* ✅ Plausible script */}
+        {/* ✅ Minimal Plausible script */}
         <Script
           defer
           data-domain="teamup.vercel.app"
-          src="https://plausible.io/js/script.file-downloads.hash.outbound-links.pageview-props.revenue.tagged-events.js"
+          src="https://plausible.io/js/script.js"
         />
-        <Script id="plausible-init">
-          {`
-            window.plausible = window.plausible || function() { 
-              (window.plausible.q = window.plausible.q || []).push(arguments) 
-            }
-          `}
-        </Script>
-
-        {/* ✅ Favicon */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
       </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <ClientProvider>{children}</ClientProvider>
