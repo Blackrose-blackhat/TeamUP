@@ -8,14 +8,15 @@ export default async function UsersPage({ searchParams }: { searchParams: { page
 
   const headersList = await headers()
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_APP_URL}/api/user/all?page=${page}&perPage=${perPage}`,
-    {
-      cache: "no-store",
-      headers: {
-        Cookie: headersList.get("cookie") || "",
-      },
-    }
-  )
+  `/api/user/all?page=${page}&perPage=${perPage}`,
+  {
+    cache: "no-store",
+    headers: {
+      Cookie: headersList.get("cookie") || "",
+    },
+  }
+)
+
   console.log(res);
   if (!res.ok) {
     throw new Error("Failed to fetch users")
