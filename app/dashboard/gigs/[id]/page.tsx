@@ -8,25 +8,32 @@ import Link from "next/link"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/app/api/auth/[...nextauth]/route"
 import DeleteGigButton from "@/components/gigs/view/delete-gig"
+import { headers } from "next/headers"
 
 export default async function GigDetailsPage({ params }: { params: { id: string } }) {
   const { id } = params
-
+  const headersList = await headers();
+  const protocol = headersList.get("x-forwarded-proto") || "http";
+  const host = headersList.get("host");
+  const baseUrl = `${protocol}://${host}`;
   let gig: any = null
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL}/api/gigs/${id}`, {
-      cache: "no-store", // always fresh
+    const res = await fetch(`${baseUrl}/api/gigs/${id}`, {
+      cache: "no-store",
+      headers: {
+        Cookie: headersList.get("cookie") || "",
+      },
     })
     if (!res.ok) return notFound()
     gig = await res.json()
-  console.log(gig);
+    console.log(gig);
   } catch (err) {
     console.error("Failed to fetch gig:", err)
     return notFound()
   }
 
   if (!gig) return notFound()
-const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions)
   const isCreator = gig.createdBy?.email === session?.user?.email
 
 
