@@ -71,7 +71,7 @@ export default function UsersList({
             variant="outline"
             size="sm"
             disabled={page === 1}
-            onClick={() => router.push(`/users?page=${page - 1}`)}
+            onClick={() => router.push(`/dashboard?network=${page - 1}`)}
           >
             Prev
           </Button>
@@ -82,7 +82,7 @@ export default function UsersList({
             variant="outline"
             size="sm"
             disabled={page === totalPages}
-            onClick={() => router.push(`/users?page=${page + 1}`)}
+            onClick={() => router.push(`/dashboard?network=${page + 1}`)}
           >
             Next
           </Button>
