@@ -43,11 +43,11 @@ export default function UsersList({
                   <Avatar className="h-10 w-10 shrink-0">
                     <AvatarImage src={user.image} />
                     <AvatarFallback className="bg-primary/10 text-primary text-sm font-medium">
-                      {user.username[0]}
+                      {user.username?.[0] || "U"}
                     </AvatarFallback>
                   </Avatar>
                   <div>
-                    <CardTitle>{user.username}</CardTitle>
+                    <CardTitle>{user.username || user.name || "User"}</CardTitle>
                     <p className="text-sm text-muted-foreground">{user.email}</p>
                   </div>
                 </div>
