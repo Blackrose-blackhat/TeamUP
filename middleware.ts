@@ -36,6 +36,6 @@ export const config = {
   matcher: [
     "/onboarding/:path*",
     "/dashboard/:path*",
-    "/" // optional, if you want to include root
+    "/" 
   ],
 };

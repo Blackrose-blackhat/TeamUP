@@ -4,7 +4,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Rocket, Target, CheckCircle, Clock, User, TrendingUp, Lightbulb, Star } from "lucide-react"
+import { Rocket, Target, CheckCircle, Clock, User, TrendingUp, Lightbulb, Star, Loader } from "lucide-react"
 import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import Link from "next/link"
 import { useSession } from "next-auth/react"
@@ -16,28 +16,35 @@ export default function DashboardPage() {
   const [recommended, setRecommended] = useState<any[]>([])
   const [skillMatch, setSkillMatch] = useState<number>(0)
   const [currentTime, setCurrentTime] = useState(new Date())
+  const [loading, setLoading] = useState(true) // ✅ track loading
 
   useEffect(() => {
     const fetchDashboard = async () => {
-      const [statsRes, appsRes, recRes, skillRes] = await Promise.all([
-        fetch("/api/dashboard/stats").then((r) => r.json()),
-        fetch("/api/dashboard/my-applicants").then((r) => r.json()),
-        fetch("/api/dashboard/recommended-gigs").then((r) => r.json()),
-        fetch("/api/dashboard/skill-match").then((r) => r.json()),
-      ])
-      if (statsRes.success) setStats(statsRes)
-      if (appsRes.success) setApplications(appsRes.gigs)
-      if (recRes.success) setRecommended(recRes.gigs)
-      if (skillRes.success) setSkillMatch(skillRes.percentage)
+      try {
+        const [statsRes, appsRes, recRes, skillRes] = await Promise.all([
+          fetch("/api/dashboard/stats").then((r) => r.json()),
+          fetch("/api/dashboard/my-applicants").then((r) => r.json()),
+          fetch("/api/dashboard/recommended-gigs").then((r) => r.json()),
+          fetch("/api/dashboard/skill-match").then((r) => r.json()),
+        ])
+        if (statsRes.success) setStats(statsRes)
+        if (appsRes.success) setApplications(appsRes.gigs)
+        if (recRes.success) setRecommended(recRes.gigs)
+        if (skillRes.success) setSkillMatch(skillRes.percentage)
+      } catch (err) {
+        console.error("Error loading dashboard:", err)
+      } finally {
+        setLoading(false) // ✅ finished loading
+      }
     }
 
     fetchDashboard()
   }, [])
- const getUserGigStatus = (gig: any, userId: string) => {
-  if (gig.team?.some((id: string) => id === userId)) return "Accepted";
-  if (gig.applicants?.some((a: any) => a.user === userId)) return "In Progress";
-  return "Not Applied";
-};
+  const getUserGigStatus = (gig: any, userId: string) => {
+    if (gig.team?.some((id: string) => id === userId)) return "Accepted";
+    if (gig.applicants?.some((a: any) => a.user === userId)) return "In Progress";
+    return "Not Applied";
+  };
 
 
 
@@ -79,10 +86,10 @@ export default function DashboardPage() {
     value: count,
     color:
       status === "Accepted"
-      ? "#10B981" // green-500
-      : status === "Rejected"
-        ? "#EF4444" // red-500
-        : "#F59E0B", // yellow-500 for pending/others
+        ? "#10B981" // green-500
+        : status === "Rejected"
+          ? "#EF4444" // red-500
+          : "#F59E0B", // yellow-500 for pending/others
   }))
 
   const skillProgressData = [
@@ -91,6 +98,14 @@ export default function DashboardPage() {
   ]
   const { data } = useSession();
   const user = data?.user?.username;
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl h-screen flex flex-col items-center justify-center mx-auto">
+       
+        <p className="text-center text-slate-400 mt-4"><Loader /></p>
+      </div>
+    )
+  }
   return (
     <div className="p-6 space-y-8 max-w-7xl mx-auto">
       <div className=" text-white p-6 rounded-lg border border-slate-600">
@@ -289,7 +304,7 @@ export default function DashboardPage() {
           ) : (
             applications.map((app) => (
               <Link
-              href={`/dashboard/gigs/${app._id}`}
+                href={`/dashboard/gigs/${app._id}`}
                 key={app._id}
                 className="flex items-center justify-between p-4 rounded-lg border border-slate-600 bg-slate-700/30 hover:bg-slate-700/50 transition-colors duration-200"
               >

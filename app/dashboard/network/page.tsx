@@ -13,7 +13,7 @@ export default async function UsersPage({ searchParams }: { searchParams: { page
   const res = await fetch(
     `${baseUrl}/api/user/all?page=${page}&perPage=${perPage}`,
     {
-      cache: "no-store",
+     
       headers: {
         Cookie: headersList.get("cookie") || "",
       },

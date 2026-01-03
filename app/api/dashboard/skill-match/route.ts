@@ -25,13 +25,21 @@ export async function GET() {
     const user = await User.findById(session.user.id).lean();
     if (!user) throw new Error("User not found");
 
+    // 🔥 Normalize skills (string → array)
+    const rawSkills = user.skills;
+    const userSkills: string[] = Array.isArray(rawSkills)
+      ? rawSkills
+      : rawSkills
+      ? [rawSkills]
+      : [];
+
     const allGigs = await Gig.find({ status: "Open" }).lean();
     const totalSkills = allGigs.reduce(
       (acc, gig) => acc.concat(gig.skills || []),
       [] as string[]
     );
 
-    const matchedSkills = user.skills.filter((skill: string) =>
+    const matchedSkills = userSkills.filter((skill: string) =>
       totalSkills.includes(skill)
     );
 
